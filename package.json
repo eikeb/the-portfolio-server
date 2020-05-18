@@ -37,7 +37,6 @@
     "helmet": "^3.22.0",
     "http-errors": "~1.6.3",
     "http-status": "^1.4.2",
-    "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "moment": "^2.25.3",
