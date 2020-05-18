@@ -5,19 +5,23 @@ const catchAsync = require('../../utils/catchAsync');
 
 const router = express.Router();
 
-router.get('/', catchAsync((req, res, next) => {
-  // Check mongo db connection
-  const connectionState = mongoose.connection.readyState;
+router.get(
+  '/',
+  catchAsync((req, res, next) => {
+    // Check mongo db connection
+    const connectionState = mongoose.connection.readyState;
 
-  const healthCheck = {
-    uptime: process.uptime(),
-    mongoDb: mongoose.STATES[connectionState],
-    timestamp: Date.now(),
-    message: 'OK'
-  };
+    const healthCheck = {
+      uptime: process.uptime(),
+      mongoDb: mongoose.STATES[connectionState],
+      timestamp: Date.now(),
+      message: 'OK',
+    };
 
-  res.status(httpStatus.OK).send(healthCheck);
-}));
+    res.status(httpStatus.OK).send(healthCheck);
+    next();
+  })
+);
 
 module.exports = router;
 
