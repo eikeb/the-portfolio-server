@@ -1,5 +1,6 @@
 # the:portfolio - A modern portfolio analysis tool
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3dfe239849164fe1b007886708df23fe)](https://app.codacy.com/manual/eikeb/the-portfolio-server?utm_source=github.com&utm_medium=referral&utm_content=eikeb/the-portfolio-server&utm_campaign=Badge_Grade_Dashboard)
 [![Build Status](https://travis-ci.org/eikeb/the-portfolio-server.svg?branch=master)](https://travis-ci.org/eikeb/the-portfolio-server)
 [![Coverage Status](https://coveralls.io/repos/github/eikeb/the-portfolio-server/badge.svg?branch=master)](https://coveralls.io/github/eikeb/the-portfolio-server?branch=master)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
