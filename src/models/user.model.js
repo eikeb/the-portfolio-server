@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
-const { omit, pick } = require('lodash');
 const { roles } = require('../config/roles');
+const { toJSON, paginate } = require('./plugins');
 
 const userSchema = mongoose.Schema(
   {
@@ -28,6 +28,7 @@ const userSchema = mongoose.Schema(
       required: true,
       trim: true,
       minlength: 8,
+      private: true, // used by the toJSON plugin
       validate(value) {
         if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
           throw new Error('Password must contain at least one letter and one number');
@@ -42,10 +43,12 @@ const userSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-    toObject: { getters: true },
-    toJSON: { getters: true },
   }
 );
+
+// add plugin that converts mongoose to json
+userSchema.plugin(toJSON);
+userSchema.plugin(paginate);
 
 /**
  * Checks if an email address is already taken.
@@ -71,28 +74,6 @@ userSchema.methods.isPasswordMatch = async function (password) {
   return bcrypt.compare(password, user.password);
 };
 
-/**
- * Returns a JSON representation of this User entity.
- * This method omits the password.
- *
- * @returns {Object} - The JSON representation
- */
-userSchema.methods.toJSON = function () {
-  const user = this;
-  return omit(user.toObject(), ['password']);
-};
-
-/**
- * Returns a JSON representation of this User entity.
- * This method omits the password.
- *
- * @returns {Object} - The JSON representation
- */
-userSchema.methods.transform = function () {
-  const user = this;
-  return pick(user.toJSON(), ['id', 'email', 'name', 'role']);
-};
-
 userSchema.pre('save', async function (next) {
   const user = this;
   if (user.isModified('password')) {
@@ -101,6 +82,9 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+/**
+ * @typedef User
+ */
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
