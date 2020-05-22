@@ -1,4 +1,3 @@
-const { describe, expect, beforeEach } = require('@jest/globals');
 const faker = require('faker');
 const { User } = require('../../../src/models');
 
