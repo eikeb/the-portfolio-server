@@ -7,11 +7,12 @@ const { Token } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 /**
- * Generate token
- * @param {ObjectId} userId
- * @param {Moment} expires
- * @param {string} [secret]
- * @returns {string}
+ * Generate a new token for a user.
+ *
+ * @param {ObjectId} userId - The user id
+ * @param {Moment} expires - The timestamp when this token expires
+ * @param {string} [secret] - The JWT Secret, defaults to the configuration value
+ * @returns {string} The signed token string
  */
 const generateToken = (userId, expires, secret = config.jwt.secret) => {
   const payload = {
@@ -19,17 +20,19 @@ const generateToken = (userId, expires, secret = config.jwt.secret) => {
     iat: moment().unix(),
     exp: expires.unix(),
   };
+
   return jwt.sign(payload, secret);
 };
 
 /**
- * Save a token
- * @param {string} token
- * @param {ObjectId} userId
- * @param {Moment} expires
- * @param {string} type
- * @param {boolean} [blacklisted]
- * @returns {Promise<Token>}
+ * Save a token to the database.
+ *
+ * @param {string} token - The signed token
+ * @param {ObjectId} userId - The user id
+ * @param {Moment} expires - The timespan when this token expires
+ * @param {string} type - The type of the token
+ * @param {boolean} [blacklisted] - Indicates if the token is blacklisted, defaults to false
+ * @returns {Promise<Token>} A Promise for the Token object
  */
 const saveToken = async (token, userId, expires, type, blacklisted = false) => {
   const tokenDoc = await Token.create({
@@ -39,14 +42,16 @@ const saveToken = async (token, userId, expires, type, blacklisted = false) => {
     type,
     blacklisted,
   });
+
   return tokenDoc;
 };
 
 /**
- * Verify token and return token doc (or throw an error if it is not valid)
- * @param {string} token
- * @param {string} type
- * @returns {Promise<Token>}
+ * Verify a token and return the Token document (or throws an error if it is not valid).
+ *
+ * @param {string} token - The signed token
+ * @param {string} type - The type of the token
+ * @returns {Promise<Token>} A Promise for the Token document
  */
 const verifyToken = async (token, type) => {
   const payload = jwt.verify(token, config.jwt.secret);
@@ -54,13 +59,15 @@ const verifyToken = async (token, type) => {
   if (!tokenDoc) {
     throw new Error('Token not found');
   }
+
   return tokenDoc;
 };
 
 /**
- * Generate auth tokens
- * @param {User} user
- * @returns {Promise<Object>}
+ * Generate auth tokens for the specified user.
+ *
+ * @param {User} user - The user
+ * @returns {Promise<Object>} A Promise for an object that contains the auth tokens
  */
 const generateAuthTokens = async (user) => {
   const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
@@ -83,15 +90,17 @@ const generateAuthTokens = async (user) => {
 };
 
 /**
- * Generate reset password token
- * @param {string} email
- * @returns {Promise<string>}
+ * Generate a new reset password token for the specified mail.
+ *
+ * @param {string} email - The email address
+ * @returns {Promise<string>} A Promise for the reset password token
  */
 const generateResetPasswordToken = async (email) => {
   const user = await userService.getUserByEmail(email);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'No users found with this email');
   }
+
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
   const resetPasswordToken = generateToken(user.id, expires);
   await saveToken(resetPasswordToken, user.id, expires, 'resetPassword');

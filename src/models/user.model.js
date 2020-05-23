@@ -46,7 +46,7 @@ const userSchema = mongoose.Schema(
   }
 );
 
-// add plugin that converts mongoose to json
+// add mongoose plugins for pagination and toJSON transformation
 userSchema.plugin(toJSON);
 userSchema.plugin(paginate);
 
@@ -84,6 +84,13 @@ userSchema.pre('save', async function (next) {
 
 /**
  * @typedef User
+ * @property {ObjectId} id - The mongo object id
+ * @property {string} name - The name of the user
+ * @property {string} email - The users email address
+ * @property {string} role - The role
+ * @property {string} password - The hashed user password
+ * @property {Date} createdAt - The creation timestamp
+ * @property {Date} updatedAt - The update timestamp
  */
 const User = mongoose.model('User', userSchema);
 
