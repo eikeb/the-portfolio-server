@@ -1,4 +1,5 @@
 const faker = require('faker');
+const mongoose = require('mongoose');
 const { describe, test, beforeEach } = require('@jest/globals');
 
 const { Portfolio } = require('../../../src/models');
@@ -10,7 +11,7 @@ describe('Portfolio model', () => {
     beforeEach(() => {
       newPortfolio = {
         name: faker.lorem.words(2),
-        owner: '123456789abcdef123456789',
+        owner: mongoose.Types.ObjectId(),
         public: false,
       };
     });
