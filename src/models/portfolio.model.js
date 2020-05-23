@@ -23,7 +23,7 @@ const portfolioSchema = mongoose.Schema(
   }
 );
 
-// add mongoose plugins for pagination and toJSON transformation
+// add mongoose plugins for pagination, toJSON transformation and ID validation
 portfolioSchema.plugin(toJSON);
 portfolioSchema.plugin(paginate);
 

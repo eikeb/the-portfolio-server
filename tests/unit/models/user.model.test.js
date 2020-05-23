@@ -1,4 +1,6 @@
 const faker = require('faker');
+const { describe, test, beforeEach } = require('@jest/globals');
+
 const { User } = require('../../../src/models');
 
 describe('User model', () => {
@@ -37,7 +39,7 @@ describe('User model', () => {
       await expect(new User(newUser).validate()).rejects.toThrow();
     });
 
-    test('should throw a validation error if role is unknown', async () => {
+    test('should throw a validation error if role is invalid', async () => {
       newUser.role = 'invalid';
       await expect(new User(newUser).validate()).rejects.toThrow();
     });

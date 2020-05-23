@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { describe, test, beforeEach } = require('@jest/globals');
+
 const { toJSON } = require('../../../src/models/plugins');
 
 describe('Model utils', () => {
@@ -9,7 +11,7 @@ describe('Model utils', () => {
       connection = mongoose.createConnection();
     });
 
-    it('should replace _id with id', () => {
+    test('should replace _id with id', () => {
       const schema = mongoose.Schema();
       schema.plugin(toJSON);
       const Model = connection.model('Model', schema);
@@ -18,7 +20,7 @@ describe('Model utils', () => {
       expect(doc.toJSON()).toHaveProperty('id', doc._id.toString());
     });
 
-    it('should remove __v', () => {
+    test('should remove __v', () => {
       const schema = mongoose.Schema();
       schema.plugin(toJSON);
       const Model = connection.model('Model', schema);
@@ -26,7 +28,7 @@ describe('Model utils', () => {
       expect(doc.toJSON()).not.toHaveProperty('__v');
     });
 
-    it('should remove createdAt and updatedAt', () => {
+    test('should remove createdAt and updatedAt', () => {
       const schema = mongoose.Schema({}, { timestamps: true });
       schema.plugin(toJSON);
       const Model = connection.model('Model', schema);
@@ -35,7 +37,7 @@ describe('Model utils', () => {
       expect(doc.toJSON()).not.toHaveProperty('updatedAt');
     });
 
-    it('should remove any path set as private', () => {
+    test('should remove any path set as private', () => {
       const schema = mongoose.Schema({
         public: { type: String },
         private: { type: String, private: true },
@@ -47,7 +49,7 @@ describe('Model utils', () => {
       expect(doc.toJSON()).toHaveProperty('public');
     });
 
-    it('should also call the schema toJSON transform function', () => {
+    test('should also call the schema toJSON transform function', () => {
       const schema = mongoose.Schema(
         {
           public: { type: String },
