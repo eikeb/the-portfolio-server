@@ -8,14 +8,14 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth('manageUsers'), validate(portfolioValidation.createPortfolio), portfolioController.createPortfolio)
-  .get(auth('getUsers'), validate(portfolioValidation.getPortfolios), portfolioController.getPortfolios);
+  .post(auth('manageOwnPortfolios'), validate(portfolioValidation.createPortfolio), portfolioController.createPortfolio)
+  .get(auth('getOwnPortfolios'), validate(portfolioValidation.getPortfolios), portfolioController.getPortfolios);
 
 router
   .route('/:portfolioId')
-  .get(auth('getUsers'), validate(portfolioValidation.getPortfolio), portfolioController.getPortfolio)
-  .patch(auth('manageUsers'), validate(portfolioValidation.updatePortfolio), portfolioController.updatePortfolio)
-  .delete(auth('manageUsers'), validate(portfolioValidation.deletePortfolio), portfolioController.deletePortfolio);
+  .get(auth('getOwnPortfolios'), validate(portfolioValidation.getPortfolio), portfolioController.getPortfolio)
+  .patch(auth('manageOwnPortfolios'), validate(portfolioValidation.updatePortfolio), portfolioController.updatePortfolio)
+  .delete(auth('manageOwnPortfolios'), validate(portfolioValidation.deletePortfolio), portfolioController.deletePortfolio);
 
 module.exports = router;
 

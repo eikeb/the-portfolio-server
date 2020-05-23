@@ -10,6 +10,7 @@ const createPortfolio = {
 
 const getPortfolios = {
   query: Joi.object().keys({
+    name: Joi.string(),
     owner: Joi.string().custom(objectId),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),

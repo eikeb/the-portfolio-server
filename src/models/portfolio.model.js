@@ -29,7 +29,7 @@ portfolioSchema.plugin(paginate);
 
 /**
  * @typedef Portfolio
- * @property {ObjectId} id - The mongo object id
+ * @property {ObjectId} _id - The mongo object id
  * @property {string} name - The name of the portfolio
  * @property {ObjectId} owner - The user id of the owner
  * @property {boolean} public - Indicates if the portfolio is public

@@ -84,7 +84,7 @@ userSchema.pre('save', async function (next) {
 
 /**
  * @typedef User
- * @property {ObjectId} id - The mongo object id
+ * @property {ObjectId} _id - The mongo object id
  * @property {string} name - The name of the user
  * @property {string} email - The users email address
  * @property {string} role - The role
