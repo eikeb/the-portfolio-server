@@ -417,6 +417,18 @@ describe('Portfolio routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
+    test('should return 404 error if portfolio is not found', async () => {
+      await insertUsers([userOne]);
+      await insertPortfolios([portfolioOne]);
+      const updateBody = { name: faker.lorem.words(2) };
+
+      await request(app)
+        .patch(`/v1/portfolios/${portfolioTwo._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.NOT_FOUND);
+    });
+
     test('should return 400 if owner should be updated', async () => {
       await insertUsers([userOne, userTwo]);
       await insertPortfolios([portfolioOne]);
