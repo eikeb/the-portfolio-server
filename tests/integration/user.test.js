@@ -5,7 +5,7 @@ const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { User } = require('../../src/models');
 const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const { userOneAccessToken, userTwoAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -166,14 +166,29 @@ describe('User routes', () => {
       await request(app).get('/v1/users').send().expect(httpStatus.UNAUTHORIZED);
     });
 
-    test('should return 403 if a non-admin is trying to access all users', async () => {
+    test('should return 200 and only its own entry if a non-admin gets all users', async () => {
       await insertUsers([userOne, userTwo, admin]);
 
-      await request(app)
+      const res = await request(app)
         .get('/v1/users')
-        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .set('Authorization', `Bearer ${userTwoAccessToken}`)
         .send()
-        .expect(httpStatus.FORBIDDEN);
+        .expect(httpStatus.OK);
+
+      expect(res.body).toEqual({
+        results: expect.any(Array),
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+        totalResults: 1,
+      });
+      expect(res.body.results).toHaveLength(1);
+      expect(res.body.results[0]).toEqual({
+        id: userTwo._id.toHexString(),
+        name: userTwo.name,
+        email: userTwo.email,
+        role: userTwo.role,
+      });
     });
 
     test('should correctly apply filter on name field', async () => {
@@ -310,7 +325,7 @@ describe('User routes', () => {
   });
 
   describe('GET /v1/users/:userId', () => {
-    test('should return 200 and the user object if data is ok', async () => {
+    test('should return 200 if the user is trying to get its own data', async () => {
       await insertUsers([userOne]);
 
       const res = await request(app)
@@ -328,22 +343,6 @@ describe('User routes', () => {
       });
     });
 
-    test('should return 401 error if access token is missing', async () => {
-      await insertUsers([userOne]);
-
-      await request(app).get(`/v1/users/${userOne._id}`).send().expect(httpStatus.UNAUTHORIZED);
-    });
-
-    test('should return 403 error if user is trying to get another user', async () => {
-      await insertUsers([userOne, userTwo]);
-
-      await request(app)
-        .get(`/v1/users/${userTwo._id}`)
-        .set('Authorization', `Bearer ${userOneAccessToken}`)
-        .send()
-        .expect(httpStatus.FORBIDDEN);
-    });
-
     test('should return 200 and the user object if admin is trying to get another user', async () => {
       await insertUsers([userOne, admin]);
 
@@ -352,6 +351,22 @@ describe('User routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.OK);
+    });
+
+    test('should return 401 error if access token is missing', async () => {
+      await insertUsers([userOne]);
+
+      await request(app).get(`/v1/users/${userOne._id}`).send().expect(httpStatus.UNAUTHORIZED);
+    });
+
+    test('should return 404 error if user is trying to get another user', async () => {
+      await insertUsers([userOne, userTwo]);
+
+      await request(app)
+        .get(`/v1/users/${userTwo._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.NOT_FOUND);
     });
 
     test('should return 400 error if userId is not a valid mongo id', async () => {

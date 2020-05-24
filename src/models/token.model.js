@@ -32,7 +32,7 @@ const tokenSchema = mongoose.Schema(
   }
 );
 
-// add mongoose plugins for toJSON transformation
+// add mongoose plugin for toJSON transformation
 tokenSchema.plugin(toJSON);
 
 /**

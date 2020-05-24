@@ -1,27 +1,9 @@
-const httpStatus = require('http-status');
 const express = require('express');
-const mongoose = require('mongoose');
-const catchAsync = require('../../utils/catchAsync');
+const healthController = require('../../controllers/health.controller');
 
 const router = express.Router();
 
-router.get(
-  '/',
-  catchAsync((req, res, next) => {
-    // Check mongo db connection
-    const connectionState = mongoose.connection.readyState;
-
-    const healthCheck = {
-      uptime: process.uptime(),
-      mongoDb: mongoose.STATES[connectionState],
-      timestamp: Date.now(),
-      message: 'OK',
-    };
-
-    res.status(httpStatus.OK).send(healthCheck);
-    next();
-  })
-);
+router.route('/').get(healthController.getHealth);
 
 module.exports = router;
 

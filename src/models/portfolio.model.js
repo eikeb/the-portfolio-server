@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
+const { accessibleRecordsPlugin } = require('@casl/mongoose');
+const { paginate, toJSON } = require('./plugins');
 
 const portfolioSchema = mongoose.Schema(
   {
@@ -23,9 +24,10 @@ const portfolioSchema = mongoose.Schema(
   }
 );
 
-// add mongoose plugins for pagination, toJSON transformation and ID validation
-portfolioSchema.plugin(toJSON);
+// add mongoose plugins
 portfolioSchema.plugin(paginate);
+portfolioSchema.plugin(toJSON);
+portfolioSchema.plugin(accessibleRecordsPlugin);
 
 /**
  * @typedef Portfolio

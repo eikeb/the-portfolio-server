@@ -47,9 +47,10 @@ const paginate = (schema) => {
    * @param {string} [options.sortBy] - Sort option in the format: sortField:(desc|asc)
    * @param {number} [options.limit] - Maximum number of results per page (default = 10)
    * @param {number} [options.page] - Current page (default = 1)
+   * @param {Ability} [ability] - The users abilities
    * @returns {Promise<QueryResult>}
    */
-  schema.statics.paginate = async function (filter, options) {
+  schema.statics.paginate = async function (filter, options, ability) {
     const sort = {};
     if (options.sortBy) {
       const parts = options.sortBy.split(':');
@@ -59,8 +60,15 @@ const paginate = (schema) => {
     const page = options.page && parseInt(options.page, 10) > 0 ? parseInt(options.page, 10) : 1;
     const skip = (page - 1) * limit;
 
-    const countPromise = this.countDocuments(filter).exec();
-    const docsPromise = this.find(filter).sort(sort).skip(skip).limit(limit).exec();
+    let countQuery = this.countDocuments(filter);
+    let docsQuery = this.find(filter).sort(sort).skip(skip).limit(limit);
+    if (ability) {
+      docsQuery = docsQuery.accessibleBy(ability);
+      countQuery = countQuery.accessibleBy(ability);
+    }
+
+    const docsPromise = docsQuery.exec();
+    const countPromise = countQuery.exec();
 
     return Promise.all([countPromise, docsPromise]).then((values) => {
       const [totalResults, results] = values;

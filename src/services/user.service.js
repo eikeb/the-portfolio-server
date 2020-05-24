@@ -4,22 +4,27 @@ const ApiError = require('../utils/ApiError');
 
 /**
  * Create a new user.
- * Throws an ApiError if the email address is already takne.
+ * Throws an ApiError if the email address is already taken.
  *
+ * @param {ExtendedAbility} ability - The users abilities
  * @param {Object} userBody - The user body
  * @returns {Promise<User>} A Promise for the User object
  */
-const createUser = async (userBody) => {
+const createUser = async (ability, userBody) => {
+  const user = new User(userBody);
+  ability.throwUnlessCan('create', user);
+
   if (await User.isEmailTaken(userBody.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
 
-  return User.create(userBody);
+  return user.save();
 };
 
 /**
  * Query for users.
  *
+ * @param {ExtendedAbility} ability - The users abilities
  * @param {Object} filter - The mongo filter
  * @param {Object} options - The query options
  * @param {string} [options.sortBy] - Sort option in the format: sortField:(desc|asc)
@@ -27,18 +32,19 @@ const createUser = async (userBody) => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>} A Promise for the QueryResult
  */
-const queryUsers = async (filter, options) => {
-  return User.paginate(filter, options);
+const queryUsers = async (ability, filter, options) => {
+  return User.paginate(filter, options, ability);
 };
 
 /**
  * Get User by id.
  *
+ * @param {ExtendedAbility} ability - The users abilities
  * @param {ObjectId} id - The user id
  * @returns {Promise<User>} A Promise for the User object
  */
-const getUserById = async (id) => {
-  return User.findById(id);
+const getUserById = async (ability, id) => {
+  return User.findById(id).accessibleBy(ability);
 };
 
 /**

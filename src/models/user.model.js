@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const { accessibleRecordsPlugin } = require('@casl/mongoose');
+const { paginate, toJSON } = require('./plugins');
 const { roles } = require('../config/roles');
-const { toJSON, paginate } = require('./plugins');
 
 const userSchema = mongoose.Schema(
   {
@@ -38,7 +39,6 @@ const userSchema = mongoose.Schema(
     role: {
       type: String,
       enum: roles,
-      default: 'user',
     },
   },
   {
@@ -46,9 +46,10 @@ const userSchema = mongoose.Schema(
   }
 );
 
-// add mongoose plugins for pagination and toJSON transformation
-userSchema.plugin(toJSON);
+// add mongoose plugins
 userSchema.plugin(paginate);
+userSchema.plugin(toJSON);
+userSchema.plugin(accessibleRecordsPlugin);
 
 /**
  * Checks if an email address is already taken.
