@@ -20,13 +20,14 @@ function defineAbilitiesFor(user) {
 
     case 'user':
       // Can read and update their own user
-      can(['read', 'update'], 'User', { _id: { $eq: user._id } });
+      can(['read'], 'User', { _id: { $eq: user._id } });
+      can(['update'], 'User', ['name', 'password'], { _id: { $eq: user._id } });
 
       // Can manage own Portfolios
-      can('manage', 'Portfolio', { owner: user._id });
+      can('manage', 'Portfolio', { owner: { $eq: user._id } });
 
       // Can read public portfolios
-      can('read', 'Portfolio', { public: true });
+      can('read', 'Portfolio', { public: { $eq: true } });
       break;
 
     default:
@@ -42,10 +43,21 @@ function defineAbilitiesFor(user) {
    * @typedef ExtendedAbility
    * @extends Ability
    * @method throwUnlessCan
+   * @param {String} action - create, read, update, delete, ...
+   * @param {String|Object} subject - The subject to check, usually the Model
+   * @param {String[]} fields - The fields that the user tries to access
    */
-  ability.throwUnlessCan = (...args) => {
-    if (!ability.can(...args)) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'Forbidden');
+  ability.throwUnlessCan = (action, subject, fields = []) => {
+    if (fields.length === 0) {
+      if (!ability.can(action, subject)) {
+        throw new ApiError(httpStatus.FORBIDDEN, 'Forbidden');
+      }
+    } else {
+      fields.forEach((field) => {
+        if (!ability.can(action, subject, field)) {
+          throw new ApiError(httpStatus.FORBIDDEN, 'Forbidden');
+        }
+      });
     }
   };
 

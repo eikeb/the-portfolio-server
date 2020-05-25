@@ -1,4 +1,6 @@
 const httpStatus = require('http-status');
+const { subject } = require('@casl/ability');
+
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 
@@ -60,12 +62,13 @@ const getUserByEmail = async (email) => {
 /**
  * Update user by id.
  *
+ * @param {ExtendedAbility} ability - The users abilities
  * @param {ObjectId} userId - The user id
  * @param {Object} updateBody - The user data
  * @returns {Promise<User>} A Promise for the User object
  */
-const updateUserById = async (userId, updateBody) => {
-  const user = await getUserById(userId);
+const updateUserById = async (ability, userId, updateBody) => {
+  const user = await getUserById(ability, userId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
@@ -74,22 +77,28 @@ const updateUserById = async (userId, updateBody) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
 
+  ability.throwUnlessCan('update', subject('User', { ...updateBody, _id: user._id }), Object.keys(updateBody));
+
   Object.assign(user, updateBody);
   await user.save();
+
   return user;
 };
 
 /**
  * Delete user by id.
  *
+ * @param {ExtendedAbility} ability - The users abilities
  * @param {ObjectId} userId - The user id
  * @returns {Promise<User>} A Promise for the User object
  */
-const deleteUserById = async (userId) => {
-  const user = await getUserById(userId);
+const deleteUserById = async (ability, userId) => {
+  const user = await getUserById(ability, userId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
+
+  ability.throwUnlessCan('delete', user);
 
   await user.remove();
   return user;
