@@ -359,14 +359,14 @@ describe('User routes', () => {
       await request(app).get(`/v1/users/${userOne._id}`).send().expect(httpStatus.UNAUTHORIZED);
     });
 
-    test('should return 404 error if user is trying to get another user', async () => {
+    test('should return 403 error if user is trying to get another user', async () => {
       await insertUsers([userOne, userTwo]);
 
       await request(app)
         .get(`/v1/users/${userTwo._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send()
-        .expect(httpStatus.NOT_FOUND);
+        .expect(httpStatus.FORBIDDEN);
     });
 
     test('should return 400 error if userId is not a valid mongo id', async () => {
@@ -420,14 +420,14 @@ describe('User routes', () => {
         .expect(httpStatus.FORBIDDEN);
     });
 
-    test('should return 404 error if user is trying to delete another user', async () => {
+    test('should return 403 error if user is trying to delete another user', async () => {
       await insertUsers([userOne, userTwo]);
 
       await request(app)
         .delete(`/v1/users/${userTwo._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send()
-        .expect(httpStatus.NOT_FOUND);
+        .expect(httpStatus.FORBIDDEN);
     });
 
     test('should return 400 error if userId is not a valid mongo id', async () => {
@@ -507,7 +507,7 @@ describe('User routes', () => {
         .patch(`/v1/users/${userTwo._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send(updateBody)
-        .expect(httpStatus.NOT_FOUND);
+        .expect(httpStatus.FORBIDDEN);
     });
 
     test('should return 200 and successfully update user if admin is updating another user', async () => {

@@ -20,14 +20,15 @@ function defineAbilitiesFor(user) {
 
     case 'user':
       // Can read and update their own user
-      can(['read'], 'User', { _id: { $eq: user._id } });
-      can(['update'], 'User', ['name', 'password'], { _id: { $eq: user._id } });
+      can(['read'], 'User', { _id: user._id });
+      can(['update'], 'User', ['name', 'password'], { _id: user._id });
 
-      // Can manage own Portfolios
-      can('manage', 'Portfolio', { owner: { $eq: user._id } });
+      // Can manage own Portfolios, but cannot change owner
+      can('manage', 'Portfolio', { owner: user._id });
+      cannot('update', 'Portfolio', ['owner']);
 
       // Can read public portfolios
-      can('read', 'Portfolio', { public: { $eq: true } });
+      can('read', 'Portfolio', { public: true });
       break;
 
     default:

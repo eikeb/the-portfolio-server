@@ -43,19 +43,23 @@ const queryUsers = async (filter, options, ability) => {
 
 /**
  * Get User by id.
+ * Throws an ApiError if the user is not found.
  *
  * @param {ObjectId} id - The user id
  * @param {ExtendedAbility} [ability] - The users abilities
  * @returns {Promise<User>} A Promise for the User object
  */
 const getUserById = async (id, ability) => {
-  let userQuery = User.findById(id);
-
-  if (ability) {
-    userQuery = userQuery.accessibleBy(ability);
+  const user = await User.findById(id);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
 
-  return userQuery;
+  if (ability) {
+    ability.throwUnlessCan('read', user);
+  }
+
+  return user;
 };
 
 /**

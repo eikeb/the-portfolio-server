@@ -1,6 +1,5 @@
 const httpStatus = require('http-status');
 const { pick } = require('lodash');
-const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
 
@@ -19,9 +18,6 @@ const getUsers = catchAsync(async (req, res) => {
 
 const getUser = catchAsync(async (req, res) => {
   const user = await userService.getUserById(req.params.userId, req.ability);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
   res.send(user);
 });
 

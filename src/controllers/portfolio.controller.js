@@ -1,37 +1,37 @@
 const httpStatus = require('http-status');
 const { pick } = require('lodash');
-const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { portfolioService } = require('../services');
 
 const createPortfolio = catchAsync(async (req, res) => {
-  const portfolio = await portfolioService.createPortfolio(req.user.id, req.body);
+  const portfolio = await portfolioService.createPortfolio(req.user.id, req.body, req.ability);
+
   res.status(httpStatus.CREATED).send(portfolio);
 });
 
 const getPortfolios = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['name', 'owner']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const result = await portfolioService.queryPortfolios(filter, options, req.ability);
 
-  const result = await portfolioService.queryPortfolios(filter, options);
   res.send(result);
 });
 
 const getPortfolio = catchAsync(async (req, res) => {
-  const portfolio = await portfolioService.getPortfolioById(req.params.portfolioId);
-  if (!portfolio) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Portfolio not found');
-  }
+  const portfolio = await portfolioService.getPortfolioById(req.params.portfolioId, req.ability);
+
   res.send(portfolio);
 });
 
 const updatePortfolio = catchAsync(async (req, res) => {
-  const portfolio = await portfolioService.updatePortfolioById(req.params.portfolioId, req.body);
+  const portfolio = await portfolioService.updatePortfolioById(req.params.portfolioId, req.body, req.ability);
+
   res.send(portfolio);
 });
 
 const deletePortfolio = catchAsync(async (req, res) => {
-  await portfolioService.deletePortfolioById(req.params.portfolioId);
+  await portfolioService.deletePortfolioById(req.params.portfolioId, req.ability);
+
   res.status(httpStatus.NO_CONTENT).send();
 });
 

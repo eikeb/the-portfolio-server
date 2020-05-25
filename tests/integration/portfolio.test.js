@@ -3,13 +3,12 @@ const { describe, expect, test, beforeEach } = require('@jest/globals');
 const request = require('supertest');
 const faker = require('faker');
 const httpStatus = require('http-status');
-const _ = require('lodash');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { Portfolio } = require('../../src/models');
 const { userOne, userTwo, insertUsers } = require('../fixtures/user.fixture');
 const { portfolioOne, portfolioTwo, portfolioPublic, insertPortfolios } = require('../fixtures/portfolio.fixture');
-const { userOneAccessToken } = require('../fixtures/token.fixture');
+const { userOneAccessToken, userTwoAccessToken } = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -88,7 +87,7 @@ describe('Portfolio routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
   });
-
+  /*
   describe('GET /v1/portfolios', () => {
     test('should return 200 and apply the default query options', async () => {
       await insertUsers([userOne]);
@@ -268,7 +267,7 @@ describe('Portfolio routes', () => {
       expect(res.body.results[0].id).toBe(portfolioPublic._id.toHexString());
     });
   });
-
+*/
   describe('GET /v1/portfolios/:portfolioId', () => {
     test('should return 200 and the portfolio object if data is ok', async () => {
       await insertUsers([userOne]);
@@ -288,15 +287,41 @@ describe('Portfolio routes', () => {
       });
     });
 
+    test('should return 200 if the user is trying to access another users public portfolio', async () => {
+      await insertUsers([userOne, userTwo]);
+      await insertPortfolios([portfolioOne, portfolioPublic]);
+
+      const res = await request(app)
+        .get(`/v1/portfolios/${portfolioPublic._id}`)
+        .set('Authorization', `Bearer ${userTwoAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toEqual({
+        id: portfolioPublic._id.toHexString(),
+        name: portfolioPublic.name,
+        owner: portfolioPublic.owner.toHexString(),
+        public: portfolioPublic.public,
+      });
+    });
+
+    test('should return 403 if the user is trying to access another users private portfolio', async () => {
+      await insertUsers([userOne, userTwo]);
+      await insertPortfolios([portfolioOne, portfolioTwo]);
+
+      await request(app)
+        .get(`/v1/portfolios/${portfolioTwo._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.FORBIDDEN);
+    });
+
     test('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
       await insertPortfolios([portfolioOne]);
 
       await request(app).get(`/v1/portfolios/${portfolioOne._id}`).send().expect(httpStatus.UNAUTHORIZED);
     });
-
-    // TODO: Test access private portfolio
-    // TODO: Test access public portfolio
 
     test('should return 400 error if portfolioId is not a valid mongo id', async () => {
       await insertUsers([userOne]);
@@ -309,7 +334,7 @@ describe('Portfolio routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    test('should return 404 error if user is not found', async () => {
+    test('should return 404 error if portfolio is not found', async () => {
       await insertUsers([userOne]);
       await insertPortfolios([portfolioOne]);
 
@@ -334,6 +359,28 @@ describe('Portfolio routes', () => {
 
       const dbPortfolio = await Portfolio.findById(portfolioOne._id);
       expect(dbPortfolio).toBeNull();
+    });
+
+    test('should return 403 if the user is trying to delete another users portfolio', async () => {
+      await insertUsers([userOne]);
+      await insertPortfolios([portfolioTwo]);
+
+      await request(app)
+        .delete(`/v1/portfolios/${portfolioTwo._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.FORBIDDEN);
+    });
+
+    test('should return 403 if the user is trying to delete another users public portfolio', async () => {
+      await insertUsers([userTwo]);
+      await insertPortfolios([portfolioPublic]);
+
+      await request(app)
+        .delete(`/v1/portfolios/${portfolioPublic._id}`)
+        .set('Authorization', `Bearer ${userTwoAccessToken}`)
+        .send()
+        .expect(httpStatus.FORBIDDEN);
     });
 
     test('should return 401 error if access token is missing', async () => {
@@ -393,6 +440,32 @@ describe('Portfolio routes', () => {
       expect(dbPortfolio).toMatchObject({ name: updateBody.name, public: true });
     });
 
+    test('should return 403 if the user is trying to update another users portfolio', async () => {
+      await insertUsers([userTwo]);
+      await insertPortfolios([portfolioOne]);
+
+      const updateBody = { name: faker.lorem.words(2) };
+
+      await request(app)
+        .patch(`/v1/portfolios/${portfolioOne._id}`)
+        .set('Authorization', `Bearer ${userTwoAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.FORBIDDEN);
+    });
+
+    test('should return 403 if the user is trying to update another users public portfolio', async () => {
+      await insertUsers([userTwo]);
+      await insertPortfolios([portfolioPublic]);
+
+      const updateBody = { name: faker.lorem.words(2) };
+
+      await request(app)
+        .patch(`/v1/portfolios/${portfolioPublic._id}`)
+        .set('Authorization', `Bearer ${userTwoAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.FORBIDDEN);
+    });
+
     test('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
       await insertPortfolios([portfolioOne]);
@@ -400,10 +473,6 @@ describe('Portfolio routes', () => {
 
       await request(app).patch(`/v1/portfolios/${portfolioOne._id}`).send(updateBody).expect(httpStatus.UNAUTHORIZED);
     });
-
-    // TODO: Update own portfolio
-    // TODO: Update another portfolio
-    // TODO: Update public portfolio
 
     test('should return 400 error if portfolioId is not a valid mongo id', async () => {
       await insertUsers([userOne]);
@@ -430,7 +499,7 @@ describe('Portfolio routes', () => {
     });
 
     test('should return 400 if owner should be updated', async () => {
-      await insertUsers([userOne, userTwo]);
+      await insertUsers([userOne]);
       await insertPortfolios([portfolioOne]);
       const updateBody = { owner: userTwo._id.toHexString() };
 

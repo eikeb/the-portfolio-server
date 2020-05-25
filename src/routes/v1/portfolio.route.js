@@ -1,5 +1,5 @@
 const express = require('express');
-const auth = require('../../middlewares/auth');
+const authorize = require('../../middlewares/authorize.middleware');
 const validate = require('../../middlewares/validate');
 const portfolioValidation = require('../../validations/portfolio.validation');
 const portfolioController = require('../../controllers/portfolio.controller');
@@ -8,14 +8,14 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth('manageOwnPortfolios'), validate(portfolioValidation.createPortfolio), portfolioController.createPortfolio)
-  .get(auth('getOwnPortfolios'), validate(portfolioValidation.getPortfolios), portfolioController.getPortfolios);
+  .post(authorize(), validate(portfolioValidation.createPortfolio), portfolioController.createPortfolio)
+  .get(authorize(), validate(portfolioValidation.getPortfolios), portfolioController.getPortfolios);
 
 router
   .route('/:portfolioId')
-  .get(auth('getOwnPortfolios'), validate(portfolioValidation.getPortfolio), portfolioController.getPortfolio)
-  .patch(auth('manageOwnPortfolios'), validate(portfolioValidation.updatePortfolio), portfolioController.updatePortfolio)
-  .delete(auth('manageOwnPortfolios'), validate(portfolioValidation.deletePortfolio), portfolioController.deletePortfolio);
+  .get(authorize(), validate(portfolioValidation.getPortfolio), portfolioController.getPortfolio)
+  .patch(authorize(), validate(portfolioValidation.updatePortfolio), portfolioController.updatePortfolio)
+  .delete(authorize(), validate(portfolioValidation.deletePortfolio), portfolioController.deletePortfolio);
 
 module.exports = router;
 
