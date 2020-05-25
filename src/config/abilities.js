@@ -35,17 +35,19 @@ function defineAbilitiesFor(user) {
       cannot('manage', 'all');
   }
 
+  /**
+   * @typedef ExtendedAbility
+   * @extends Ability
+   */
   const ability = build();
 
   /**
    * Register a shortcut method to check if a user can perform a certain action
    *
-   * @typedef ExtendedAbility
-   * @extends Ability
    * @method throwUnlessCan
    * @param {String} action - create, read, update, delete, ...
    * @param {String|Object} subject - The subject to check, usually the Model
-   * @param {String[]} fields - The fields that the user tries to access
+   * @param {String[]} [fields] - The fields that the user tries to access
    */
   ability.throwUnlessCan = (action, subject, fields = []) => {
     if (fields.length === 0) {

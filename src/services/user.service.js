@@ -8,13 +8,16 @@ const ApiError = require('../utils/ApiError');
  * Create a new user.
  * Throws an ApiError if the email address is already taken.
  *
- * @param {ExtendedAbility} ability - The users abilities
  * @param {Object} userBody - The user body
+ * @param {ExtendedAbility} [ability] - The users abilities
  * @returns {Promise<User>} A Promise for the User object
  */
-const createUser = async (ability, userBody) => {
+const createUser = async (userBody, ability) => {
   const user = new User(userBody);
-  ability.throwUnlessCan('create', user);
+
+  if (ability) {
+    ability.throwUnlessCan('create', user);
+  }
 
   if (await User.isEmailTaken(userBody.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
@@ -26,27 +29,33 @@ const createUser = async (ability, userBody) => {
 /**
  * Query for users.
  *
- * @param {ExtendedAbility} ability - The users abilities
  * @param {Object} filter - The mongo filter
  * @param {Object} options - The query options
  * @param {string} [options.sortBy] - Sort option in the format: sortField:(desc|asc)
  * @param {number} [options.limit] - Maximum number of results per page (default = 10)
  * @param {number} [options.page] - Current page (default = 1)
+ * @param {ExtendedAbility} [ability] - The users abilities
  * @returns {Promise<QueryResult>} A Promise for the QueryResult
  */
-const queryUsers = async (ability, filter, options) => {
+const queryUsers = async (filter, options, ability) => {
   return User.paginate(filter, options, ability);
 };
 
 /**
  * Get User by id.
  *
- * @param {ExtendedAbility} ability - The users abilities
  * @param {ObjectId} id - The user id
+ * @param {ExtendedAbility} [ability] - The users abilities
  * @returns {Promise<User>} A Promise for the User object
  */
-const getUserById = async (ability, id) => {
-  return User.findById(id).accessibleBy(ability);
+const getUserById = async (id, ability) => {
+  let userQuery = User.findById(id);
+
+  if (ability) {
+    userQuery = userQuery.accessibleBy(ability);
+  }
+
+  return userQuery;
 };
 
 /**
@@ -62,13 +71,13 @@ const getUserByEmail = async (email) => {
 /**
  * Update user by id.
  *
- * @param {ExtendedAbility} ability - The users abilities
  * @param {ObjectId} userId - The user id
  * @param {Object} updateBody - The user data
+ * @param {ExtendedAbility} [ability] - The users abilities
  * @returns {Promise<User>} A Promise for the User object
  */
-const updateUserById = async (ability, userId, updateBody) => {
-  const user = await getUserById(ability, userId);
+const updateUserById = async (userId, updateBody, ability) => {
+  const user = await getUserById(userId, ability);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
@@ -77,7 +86,9 @@ const updateUserById = async (ability, userId, updateBody) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
 
-  ability.throwUnlessCan('update', subject('User', { ...updateBody, _id: user._id }), Object.keys(updateBody));
+  if (ability) {
+    ability.throwUnlessCan('update', subject('User', { ...updateBody, _id: user._id }), Object.keys(updateBody));
+  }
 
   Object.assign(user, updateBody);
   await user.save();
@@ -88,12 +99,12 @@ const updateUserById = async (ability, userId, updateBody) => {
 /**
  * Delete user by id.
  *
- * @param {ExtendedAbility} ability - The users abilities
  * @param {ObjectId} userId - The user id
+ * @param {ExtendedAbility} ability - The users abilities
  * @returns {Promise<User>} A Promise for the User object
  */
-const deleteUserById = async (ability, userId) => {
-  const user = await getUserById(ability, userId);
+const deleteUserById = async (userId, ability) => {
+  const user = await getUserById(userId, ability);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
