@@ -18,6 +18,15 @@ const getPortfolios = {
   }),
 };
 
+const getMyPortfolios = {
+  query: Joi.object().keys({
+    name: Joi.string(),
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
+  }),
+};
+
 const getPortfolio = {
   params: Joi.object().keys({
     portfolioId: Joi.required().custom(objectId),
@@ -45,6 +54,7 @@ const deletePortfolio = {
 module.exports = {
   createPortfolio,
   getPortfolios,
+  getMyPortfolios,
   getPortfolio,
   updatePortfolio,
   deletePortfolio,

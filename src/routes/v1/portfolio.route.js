@@ -11,6 +11,8 @@ router
   .post(authorize(), validate(portfolioValidation.createPortfolio), portfolioController.createPortfolio)
   .get(authorize(), validate(portfolioValidation.getPortfolios), portfolioController.getPortfolios);
 
+router.route('/mine').get(authorize(), validate(portfolioValidation.getMyPortfolios), portfolioController.getMyPortfolios);
+
 router
   .route('/:portfolioId')
   .get(authorize(), validate(portfolioValidation.getPortfolio), portfolioController.getPortfolio)
