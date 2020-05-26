@@ -12,6 +12,10 @@ const createPortfolio = catchAsync(async (req, res) => {
 const getPortfolios = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['name', 'owner']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
+
+  // Only return public portfolios
+  filter.public = true;
+
   const result = await portfolioService.queryPortfolios(filter, options, req.ability);
 
   res.send(result);

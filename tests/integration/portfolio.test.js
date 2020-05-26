@@ -3,11 +3,18 @@ const { describe, expect, test, beforeEach } = require('@jest/globals');
 const request = require('supertest');
 const faker = require('faker');
 const httpStatus = require('http-status');
+const _ = require('lodash');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { Portfolio } = require('../../src/models');
 const { userOne, userTwo, insertUsers } = require('../fixtures/user.fixture');
-const { portfolioOne, portfolioTwo, portfolioPublic, insertPortfolios } = require('../fixtures/portfolio.fixture');
+const {
+  portfolioOne,
+  portfolioTwo,
+  portfolioThreePublic,
+  portfolioFourPublic,
+  insertPortfolios,
+} = require('../fixtures/portfolio.fixture');
 const { userOneAccessToken, userTwoAccessToken } = require('../fixtures/token.fixture');
 
 setupTestDB();
@@ -87,11 +94,11 @@ describe('Portfolio routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
   });
-  /*
+
   describe('GET /v1/portfolios', () => {
     test('should return 200 and apply the default query options', async () => {
       await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
+      await insertPortfolios([portfolioOne, portfolioThreePublic, portfolioFourPublic]);
 
       const res = await request(app)
         .get('/v1/portfolios')
@@ -104,35 +111,48 @@ describe('Portfolio routes', () => {
         page: 1,
         limit: 10,
         totalPages: 1,
-        totalResults: 3,
+        totalResults: 2,
       });
 
-      expect(res.body.results).toHaveLength(3);
+      expect(res.body.results).toHaveLength(2);
       expect(res.body.results[0]).toEqual({
-        id: portfolioOne._id.toHexString(),
-        name: portfolioOne.name,
+        id: portfolioThreePublic._id.toHexString(),
+        name: portfolioThreePublic.name,
         owner: userOne._id.toHexString(),
-        public: portfolioOne.public,
+        public: portfolioThreePublic.public,
       });
     });
 
-    test('should return 401 if access token is missing', async () => {
+    test('should return 200 and only return public portfolios', async () => {
       await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
-
-      await request(app).get('/v1/portfolios').send().expect(httpStatus.UNAUTHORIZED);
-    });
-
-    // TODO: Test private portfolios in /portfolios
-
-    test('should correctly apply filter on name field', async () => {
-      await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
+      await insertPortfolios([portfolioOne, portfolioTwo, portfolioThreePublic, portfolioFourPublic]);
 
       const res = await request(app)
         .get('/v1/portfolios')
         .set('Authorization', `Bearer ${userOneAccessToken}`)
-        .query({ name: portfolioOne.name })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body.results).toHaveLength(2);
+      expect(res.body.results[0].public).toBeTruthy();
+      expect(res.body.results[1].public).toBeTruthy();
+    });
+
+    test('should return 401 if access token is missing', async () => {
+      await insertUsers([userOne]);
+      await insertPortfolios([portfolioOne, portfolioTwo, portfolioThreePublic]);
+
+      await request(app).get('/v1/portfolios').send().expect(httpStatus.UNAUTHORIZED);
+    });
+
+    test('should correctly apply filter on name field', async () => {
+      await insertUsers([userOne]);
+      await insertPortfolios([portfolioThreePublic, portfolioFourPublic]);
+
+      const res = await request(app)
+        .get('/v1/portfolios')
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .query({ name: portfolioThreePublic.name })
         .send()
         .expect(httpStatus.OK);
 
@@ -144,17 +164,17 @@ describe('Portfolio routes', () => {
         totalResults: 1,
       });
       expect(res.body.results).toHaveLength(1);
-      expect(res.body.results[0].id).toBe(portfolioOne._id.toHexString());
+      expect(res.body.results[0].id).toBe(portfolioThreePublic._id.toHexString());
     });
 
     test('should correctly apply filter on owner field', async () => {
       await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
+      await insertPortfolios([portfolioThreePublic, portfolioFourPublic]);
 
       const res = await request(app)
         .get('/v1/portfolios')
         .set('Authorization', `Bearer ${userOneAccessToken}`)
-        .query({ owner: userOne._id.toHexString() })
+        .query({ owner: userTwo._id.toHexString() })
         .send()
         .expect(httpStatus.OK);
 
@@ -163,18 +183,17 @@ describe('Portfolio routes', () => {
         page: 1,
         limit: 10,
         totalPages: 1,
-        totalResults: 2,
+        totalResults: 1,
       });
-      expect(res.body.results).toHaveLength(2);
-      expect(res.body.results[0].id).toBe(portfolioOne._id.toHexString());
-      expect(res.body.results[1].id).toBe(portfolioPublic._id.toHexString());
+      expect(res.body.results).toHaveLength(1);
+      expect(res.body.results[0].id).toBe(portfolioFourPublic._id.toHexString());
     });
 
     test('should correctly sort returned array if descending sort param is specified', async () => {
       await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
+      await insertPortfolios([portfolioThreePublic, portfolioFourPublic]);
 
-      const sortedPortfolios = _.sortBy([portfolioOne, portfolioTwo, portfolioPublic], 'name');
+      const sortedPortfolios = _.sortBy([portfolioThreePublic, portfolioFourPublic], 'name');
 
       const res = await request(app)
         .get('/v1/portfolios')
@@ -188,19 +207,18 @@ describe('Portfolio routes', () => {
         page: 1,
         limit: 10,
         totalPages: 1,
-        totalResults: 3,
+        totalResults: 2,
       });
-      expect(res.body.results).toHaveLength(3);
-      expect(res.body.results[0].id).toBe(sortedPortfolios[2]._id.toHexString());
-      expect(res.body.results[1].id).toBe(sortedPortfolios[1]._id.toHexString());
-      expect(res.body.results[2].id).toBe(sortedPortfolios[0]._id.toHexString());
+      expect(res.body.results).toHaveLength(2);
+      expect(res.body.results[0].id).toBe(sortedPortfolios[1]._id.toHexString());
+      expect(res.body.results[1].id).toBe(sortedPortfolios[0]._id.toHexString());
     });
 
     test('should correctly sort returned array if ascending sort param is specified', async () => {
       await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
+      await insertPortfolios([portfolioThreePublic, portfolioFourPublic]);
 
-      const sortedPortfolios = _.sortBy([portfolioOne, portfolioTwo, portfolioPublic], 'name');
+      const sortedPortfolios = _.sortBy([portfolioThreePublic, portfolioFourPublic], 'name');
 
       const res = await request(app)
         .get('/v1/portfolios')
@@ -214,60 +232,58 @@ describe('Portfolio routes', () => {
         page: 1,
         limit: 10,
         totalPages: 1,
-        totalResults: 3,
+        totalResults: 2,
       });
-      expect(res.body.results).toHaveLength(3);
+      expect(res.body.results).toHaveLength(2);
       expect(res.body.results[0].id).toBe(sortedPortfolios[0]._id.toHexString());
       expect(res.body.results[1].id).toBe(sortedPortfolios[1]._id.toHexString());
-      expect(res.body.results[2].id).toBe(sortedPortfolios[2]._id.toHexString());
     });
 
     test('should limit returned array if limit param is specified', async () => {
       await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
+      await insertPortfolios([portfolioThreePublic, portfolioFourPublic]);
 
       const res = await request(app)
         .get('/v1/portfolios')
         .set('Authorization', `Bearer ${userOneAccessToken}`)
-        .query({ limit: 2 })
+        .query({ limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
         results: expect.any(Array),
         page: 1,
-        limit: 2,
+        limit: 1,
         totalPages: 2,
-        totalResults: 3,
+        totalResults: 2,
       });
-      expect(res.body.results).toHaveLength(2);
-      expect(res.body.results[0].id).toBe(portfolioOne._id.toHexString());
-      expect(res.body.results[1].id).toBe(portfolioTwo._id.toHexString());
+      expect(res.body.results).toHaveLength(1);
+      expect(res.body.results[0].id).toBe(portfolioThreePublic._id.toHexString());
     });
 
     test('should return the correct page if page and limit params are specified', async () => {
       await insertUsers([userOne]);
-      await insertPortfolios([portfolioOne, portfolioTwo, portfolioPublic]);
+      await insertPortfolios([portfolioThreePublic, portfolioFourPublic]);
 
       const res = await request(app)
         .get('/v1/portfolios')
         .set('Authorization', `Bearer ${userOneAccessToken}`)
-        .query({ page: 2, limit: 2 })
+        .query({ page: 2, limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
         results: expect.any(Array),
         page: 2,
-        limit: 2,
+        limit: 1,
         totalPages: 2,
-        totalResults: 3,
+        totalResults: 2,
       });
       expect(res.body.results).toHaveLength(1);
-      expect(res.body.results[0].id).toBe(portfolioPublic._id.toHexString());
+      expect(res.body.results[0].id).toBe(portfolioFourPublic._id.toHexString());
     });
   });
-*/
+
   describe('GET /v1/portfolios/:portfolioId', () => {
     test('should return 200 and the portfolio object if data is ok', async () => {
       await insertUsers([userOne]);
@@ -289,19 +305,19 @@ describe('Portfolio routes', () => {
 
     test('should return 200 if the user is trying to access another users public portfolio', async () => {
       await insertUsers([userOne, userTwo]);
-      await insertPortfolios([portfolioOne, portfolioPublic]);
+      await insertPortfolios([portfolioOne, portfolioThreePublic]);
 
       const res = await request(app)
-        .get(`/v1/portfolios/${portfolioPublic._id}`)
+        .get(`/v1/portfolios/${portfolioThreePublic._id}`)
         .set('Authorization', `Bearer ${userTwoAccessToken}`)
         .send()
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        id: portfolioPublic._id.toHexString(),
-        name: portfolioPublic.name,
-        owner: portfolioPublic.owner.toHexString(),
-        public: portfolioPublic.public,
+        id: portfolioThreePublic._id.toHexString(),
+        name: portfolioThreePublic.name,
+        owner: portfolioThreePublic.owner.toHexString(),
+        public: portfolioThreePublic.public,
       });
     });
 
@@ -374,10 +390,10 @@ describe('Portfolio routes', () => {
 
     test('should return 403 if the user is trying to delete another users public portfolio', async () => {
       await insertUsers([userTwo]);
-      await insertPortfolios([portfolioPublic]);
+      await insertPortfolios([portfolioThreePublic]);
 
       await request(app)
-        .delete(`/v1/portfolios/${portfolioPublic._id}`)
+        .delete(`/v1/portfolios/${portfolioThreePublic._id}`)
         .set('Authorization', `Bearer ${userTwoAccessToken}`)
         .send()
         .expect(httpStatus.FORBIDDEN);
@@ -455,12 +471,12 @@ describe('Portfolio routes', () => {
 
     test('should return 403 if the user is trying to update another users public portfolio', async () => {
       await insertUsers([userTwo]);
-      await insertPortfolios([portfolioPublic]);
+      await insertPortfolios([portfolioThreePublic]);
 
       const updateBody = { name: faker.lorem.words(2) };
 
       await request(app)
-        .patch(`/v1/portfolios/${portfolioPublic._id}`)
+        .patch(`/v1/portfolios/${portfolioThreePublic._id}`)
         .set('Authorization', `Bearer ${userTwoAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.FORBIDDEN);

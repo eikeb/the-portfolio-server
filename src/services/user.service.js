@@ -82,9 +82,6 @@ const getUserByEmail = async (email) => {
  */
 const updateUserById = async (userId, updateBody, ability) => {
   const user = await getUserById(userId, ability);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
 
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
@@ -109,9 +106,6 @@ const updateUserById = async (userId, updateBody, ability) => {
  */
 const deleteUserById = async (userId, ability) => {
   const user = await getUserById(userId, ability);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
 
   ability.throwUnlessCan('delete', user);
 

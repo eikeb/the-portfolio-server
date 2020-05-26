@@ -17,10 +17,17 @@ const portfolioTwo = {
   public: false,
 };
 
-const portfolioPublic = {
+const portfolioThreePublic = {
   _id: mongoose.Types.ObjectId(),
   name: faker.lorem.words(2),
   owner: userOne._id,
+  public: true,
+};
+
+const portfolioFourPublic = {
+  _id: mongoose.Types.ObjectId(),
+  name: faker.lorem.words(2),
+  owner: userTwo._id,
   public: true,
 };
 
@@ -31,6 +38,7 @@ const insertPortfolios = async (portfolios) => {
 module.exports = {
   portfolioOne,
   portfolioTwo,
-  portfolioPublic,
+  portfolioThreePublic,
+  portfolioFourPublic,
   insertPortfolios,
 };

@@ -31,9 +31,6 @@ const refreshAuth = async (refreshToken) => {
   try {
     const refreshTokenDoc = await tokenService.verifyToken(refreshToken, 'refresh');
     const user = await userService.getUserById(refreshTokenDoc.user);
-    if (!user) {
-      throw new Error();
-    }
 
     // Delete the refresh token that was used
     await refreshTokenDoc.remove();
@@ -55,9 +52,6 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
   try {
     const resetPasswordTokenDoc = await tokenService.verifyToken(resetPasswordToken, 'resetPassword');
     const user = await userService.getUserById(resetPasswordTokenDoc.user);
-    if (!user) {
-      throw new Error();
-    }
 
     // Delete all reset password tokens for the user
     await Token.deleteMany({ user: user.id, type: 'resetPassword' });
