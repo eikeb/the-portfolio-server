@@ -20,7 +20,7 @@ module.exports = router;
  *  /health:
  *    get:
  *      summary: Retrieves the status of the server
- *      description: This route returns the status of the server, including the database connection status.
+ *      description: This route returns the status of the server, including the database connection status and uptime.
  *      tags: [Healthcheck]
  *      responses:
  *        "200":

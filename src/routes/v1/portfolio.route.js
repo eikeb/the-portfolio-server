@@ -46,47 +46,32 @@ module.exports = router;
  *              type: object
  *              required:
  *                - name
- *                - email
- *                - password
- *                - role
+ *                - public
  *              properties:
  *                name:
  *                  type: string
- *                email:
- *                  type: string
- *                  format: email
- *                  description: must be unique
- *                password:
- *                  type: string
- *                  format: password
- *                  minLength: 8
- *                  description: At least one number and one letter
- *                role:
- *                   type: string
- *                   enum: [user, admin]
+ *                public:
+ *                  type: boolean
+ *                  description: Indicates if the Portfolio is accessible by other users
  *              example:
- *                name: fake name
- *                email: fake@example.com
- *                password: password1
- *                role: user
+ *                name: My Portfolio
+ *                public: false
  *      responses:
  *        "201":
  *          description: Created
  *          content:
  *            application/json:
  *              schema:
- *                 $ref: '#/components/schemas/User'
- *        "400":
- *          $ref: '#/components/responses/DuplicateEmail'
+ *                 $ref: '#/components/schemas/Portfolio'
  *        "401":
  *          $ref: '#/components/responses/Unauthorized'
  *        "403":
  *          $ref: '#/components/responses/Forbidden'
  *
  *    get:
- *      summary: Get all users
- *      description: Only admins can retrieve all users.
- *      tags: [Users]
+ *      summary: Get all public Portfolios
+ *      description: Get all public Portfolios
+ *      tags: [Portfolios]
  *      security:
  *        - bearerAuth: []
  *      parameters:
@@ -94,12 +79,12 @@ module.exports = router;
  *          name: name
  *          schema:
  *            type: string
- *          description: User name
+ *          description: Portfolio name
  *        - in: query
- *          name: role
+ *          name: owner
  *          schema:
  *            type: string
- *          description: User role
+ *          description: Portfolio owner
  *        - in: query
  *          name: sortBy
  *          schema:
@@ -111,7 +96,7 @@ module.exports = router;
  *            type: integer
  *            minimum: 1
  *          default: 100
- *          description: Maximum number of users
+ *          description: Maximum number of Portfolios
  *        - in: query
  *          name: page
  *          schema:
@@ -127,7 +112,7 @@ module.exports = router;
  *              schema:
  *                type: array
  *                items:
- *                  $ref: '#/components/schemas/User'
+ *                  $ref: '#/components/schemas/Portfolio'
  *        "401":
  *          $ref: '#/components/responses/Unauthorized'
  *        "403":
@@ -137,11 +122,61 @@ module.exports = router;
 /**
  * @swagger
  * path:
- *  /users/{id}:
+ *  /portfolios/mine:
  *    get:
- *      summary: Get a user
- *      description: Logged in users can fetch only their own user information. Only admins can fetch other users.
- *      tags: [Users]
+ *      summary: Get my Portfolios
+ *      description: Get all Portfolios of the current user
+ *      tags: [Portfolios]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: query
+ *          name: name
+ *          schema:
+ *            type: string
+ *          description: Portfolio name
+ *        - in: query
+ *          name: sortBy
+ *          schema:
+ *            type: string
+ *          description: sort by query in the form of field:desc/asc (ex. name:asc)
+ *        - in: query
+ *          name: limit
+ *          schema:
+ *            type: integer
+ *            minimum: 1
+ *          default: 100
+ *          description: Maximum number of Portfolios
+ *        - in: query
+ *          name: page
+ *          schema:
+ *            type: integer
+ *            minimum: 1
+ *            default: 1
+ *          description: Page number
+ *      responses:
+ *        "200":
+ *          description: OK
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  $ref: '#/components/schemas/Portfolio'
+ *        "401":
+ *          $ref: '#/components/responses/Unauthorized'
+ *        "403":
+ *          $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ * @swagger
+ * path:
+ *  /portfolios/{id}:
+ *    get:
+ *      summary: Get a Portfolio
+ *      description: Gets the Portfolio details. The Portfolio must be public, or the logged in user has to be the owner of this portfolio.
+ *      tags: [Portfolios]
  *      security:
  *        - bearerAuth: []
  *      parameters:
@@ -150,14 +185,14 @@ module.exports = router;
  *          required: true
  *          schema:
  *            type: string
- *          description: User id
+ *          description: Portfolio id
  *      responses:
  *        "200":
  *          description: OK
  *          content:
  *            application/json:
  *              schema:
- *                 $ref: '#/components/schemas/User'
+ *                 $ref: '#/components/schemas/Portfolio'
  *        "401":
  *          $ref: '#/components/responses/Unauthorized'
  *        "403":
@@ -166,9 +201,9 @@ module.exports = router;
  *          $ref: '#/components/responses/NotFound'
  *
  *    patch:
- *      summary: Update a user
- *      description: Logged in users can only update their own information. Only admins can update other users.
- *      tags: [Users]
+ *      summary: Update a Portfolio
+ *      description: Only the owner can modify the Portfolio data.
+ *      tags: [Portfolios]
  *      security:
  *        - bearerAuth: []
  *      parameters:
@@ -177,7 +212,7 @@ module.exports = router;
  *          required: true
  *          schema:
  *            type: string
- *          description: User id
+ *          description: Portfolio id
  *      requestBody:
  *        required: true
  *        content:
@@ -187,28 +222,19 @@ module.exports = router;
  *              properties:
  *                name:
  *                  type: string
- *                email:
- *                  type: string
- *                  format: email
- *                  description: must be unique
- *                password:
- *                  type: string
- *                  format: password
- *                  minLength: 8
- *                  description: At least one number and one letter
+ *                public:
+ *                  type: boolean
+ *                  description: Indicates if the Portfolio is accessible by other users
  *              example:
- *                name: fake name
- *                email: fake@example.com
- *                password: password1
+ *                name: My public Portfolio
+ *                public: true
  *      responses:
  *        "200":
  *          description: OK
  *          content:
  *            application/json:
  *              schema:
- *                 $ref: '#/components/schemas/User'
- *        "400":
- *          $ref: '#/components/responses/DuplicateEmail'
+ *                 $ref: '#/components/schemas/Portfolio'
  *        "401":
  *          $ref: '#/components/responses/Unauthorized'
  *        "403":
@@ -217,9 +243,9 @@ module.exports = router;
  *          $ref: '#/components/responses/NotFound'
  *
  *    delete:
- *      summary: Delete a user
- *      description: Logged in users can delete only themselves. Only admins can delete other users.
- *      tags: [Users]
+ *      summary: Delete a Portfolio
+ *      description: Only the owner can delete his portfolio.
+ *      tags: [Portfolios]
  *      security:
  *        - bearerAuth: []
  *      parameters:
@@ -228,7 +254,7 @@ module.exports = router;
  *          required: true
  *          schema:
  *            type: string
- *          description: User id
+ *          description: Portfolio id
  *      responses:
  *        "200":
  *          description: No content

@@ -65,6 +65,23 @@ components:
         timestamp: 1589659926639
         message: OK
 
+    Portfolio:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        owner:
+          $ref: '#/components/schemas/User'
+        public:
+          type: boolean
+      example:
+        id: 5ed0cf6fe4dd450cfc587456
+        name: "My Portfolio"
+        owner: 5ed0cf6fe4dd450cfc587453
+        public: false
+
   responses:
     DuplicateEmail:
       description: Email already taken
