@@ -43,7 +43,7 @@ cd the-portfolio-server
 Install dependencies:
 
 ```bash
-npm install
+yarn install
 ```
 
 Set environment variables:
@@ -58,42 +58,42 @@ cp .env.example .env
 Running locally:
 
 ```bash
-npm run start:dev
+yarn start:dev
 ```
 
 Running in production:
 
 ```bash
-npm start
+yarn start
 ```
 
 Unit and integration tests:
 
 ```bash
 # Run all tests
-npm run test
+yarn test
 
 # Run all tests in watch mode
-npm run test:watch
+yarn test:watch
 
 # Run test coverage
-npm run coverage
+yarn coverage
 ```
 
 Linting:
 
 ```bash
 # Run ESLint
-npm run lint
+yarn lint
 
 # Fix ESLint errors
-npm run lint:fix
+yarn lint:fix
 
 # Run prettier
-npm run prettier
+yarn prettier
 
 # Fix prettier errors
-npm run prettier:fix
+yarn prettier:fix
 ```
 
 ## Project Structure
