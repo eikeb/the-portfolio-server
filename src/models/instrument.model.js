@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { accessibleRecordsPlugin } = require('@casl/mongoose');
 const { paginate, toJSON } = require('./plugins');
 
-const holdingSchema = mongoose.Schema(
+const instrumentSchema = mongoose.Schema(
   {
     symbol: {
       type: String,
@@ -26,18 +26,18 @@ const holdingSchema = mongoose.Schema(
 );
 
 // add mongoose plugins
-holdingSchema.plugin(paginate);
-holdingSchema.plugin(toJSON);
-holdingSchema.plugin(accessibleRecordsPlugin);
+instrumentSchema.plugin(paginate);
+instrumentSchema.plugin(toJSON);
+instrumentSchema.plugin(accessibleRecordsPlugin);
 
 /**
- * @typedef Holding
+ * @typedef Instrument
  * @property {ObjectId} _id - The mongo object id
- * @property {string} name - The name of this holding
- * @property {ObjectId} portfolio - The portfolio id to which this holding belongs
+ * @property {string} name - The name of this Instrument
+ * @property {ObjectId} portfolio - The portfolio id to which this Instrument belongs
  * @property {Date} createdAt - The creation timestamp
  * @property {Date} updatedAt - The update timestamp
  */
-const Holding = mongoose.model('Holding', holdingSchema);
+const Instrument = mongoose.model('Instrument', instrumentSchema);
 
-module.exports = Holding;
+module.exports = Instrument;
