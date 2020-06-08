@@ -60,8 +60,15 @@ const paginate = (schema) => {
     const page = options.page && parseInt(options.page, 10) > 0 ? parseInt(options.page, 10) : 1;
     const skip = (page - 1) * limit;
 
-    const countPromise = this.countDocuments(filter).accessibleBy(ability).exec();
-    const docsPromise = this.find(filter).sort(sort).skip(skip).limit(limit).accessibleBy(ability).exec();
+    let countQuery = this.countDocuments(filter);
+    let docsQuery = this.find(filter).sort(sort).skip(skip).limit(limit);
+    if (ability) {
+      countQuery = countQuery.accessibleBy(ability);
+      docsQuery = docsQuery.accessibleBy(ability);
+    }
+
+    const countPromise = countQuery.exec();
+    const docsPromise = docsQuery.exec();
 
     return Promise.all([countPromise, docsPromise]).then((values) => {
       const [totalResults, results] = values;

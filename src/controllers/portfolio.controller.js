@@ -25,7 +25,7 @@ const getMyPortfolios = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['name']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
 
-  // Only return my Portfolios
+  // Only find my Portfolios
   filter.owner = req.user._id;
 
   const result = await portfolioService.queryPortfolios(filter, options, req.ability);
